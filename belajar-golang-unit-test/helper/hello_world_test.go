@@ -9,6 +9,32 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestTableHelloWorld(t *testing.T) {
+	tests := []struct {
+		name string
+		request string
+		expected string
+	}{
+		{
+			name: "HelloWorld(Andi)",
+			request: "Andi",
+			expected: "Hello Andi",
+		},
+		{
+			name: "HelloWorld(Budi)",
+			request: "Budi",
+			expected: "Hello Budi",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := HelloWorld(test.request)
+			require.Equal(t, test.expected, result)
+		})
+	}
+}
+
 func TestSubTest(t *testing.T) {
 	t.Run("Andi", func(t *testing.T) {
 		result := HelloWorld("Andi")
@@ -53,4 +79,47 @@ func TestHelloWorldBudi(t *testing.T) {
 	// }
 	require.Equal(t, "Hello Budi", result, "Result is not Hello Budi")
 	fmt.Println("TestHelloWorldBudi Done")
+}
+
+func BenchmarkHelloWorld(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		HelloWorld("Andi")
+	}
+}
+
+func BenchmarkSub(b *testing.B) {
+	b.Run("Andi", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			HelloWorld("Andi")
+		}
+	})
+	b.Run("Budi", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			HelloWorld("Budi")
+		}
+	})
+}
+
+func BenchmarkTable(b *testing.B) {
+	benchmarks := []struct {
+		name string
+		request string
+	}{
+		{
+			name: "HelloWorld(Andi)",
+			request: "Andi",
+		},
+		{
+			name: "HelloWorld(Budi)",
+			request: "Budi",
+		},
+	}
+
+	for _, benchmark := range benchmarks {
+		b.Run(benchmark.name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				HelloWorld(benchmark.request)
+			}
+		})
+	}
 }
