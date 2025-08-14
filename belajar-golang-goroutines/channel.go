@@ -17,6 +17,7 @@ func ambilData2(ch chan string) {
 
 func main() {
     ch := make(chan string)
+    defer close(ch)
 
     go ambilData1(ch)
     go ambilData2(ch)
