@@ -1,0 +1,11 @@
+{{ template "header.html" .}}
+
+<h1>Hello World Template Layout {{.Title}}</h1>
+<h2>{{template "content" .}}</h2>
+
+{{ template "footer.html" .}}
+
+
+{{ define "content" }}
+    <h1>Hello World Template Layout 2 {{.Name}}</h1>
+{{ end }}

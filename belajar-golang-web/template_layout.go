@@ -6,22 +6,17 @@ import (
 	"net/http"
 )
 
-type Address struct {
-	Street string
-	City string
-	Country string
-}
-
 type User struct {
 	Title string
 	Name string
-	Value int
-	Hobbies []string
-	Address *Address
 }
 
 func main() {
-	tmpl, err := template.ParseFiles("templates/if.html")
+	tmpl, err := template.ParseFiles(
+		"templates/layout.html",
+		"templates/header.html",
+		"templates/footer.html",
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -32,17 +27,10 @@ func main() {
 			data := User{
 				Title: "Selamat datang di halaman template Go Struct!",
 				Name: "John Doe",
-				Value: 50,
-				Hobbies: []string{"Berenang", "Bermain", "Bernyanyi"},
-				Address: &Address{
-					Street: "Jl. Raya",
-					City: "Jakarta",
-					Country: "Indonesia",
-				},
 			}
 
 			// Eksekusi template dengan data string
-			err := tmpl.ExecuteTemplate(w, "if.html", data)
+			err := tmpl.ExecuteTemplate(w, "layout.html", data)
 			if err != nil {
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			}

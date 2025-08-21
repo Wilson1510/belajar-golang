@@ -11,5 +11,31 @@
     {{else}}
         <h1>Hello World</h1>
     {{end}}
+
+    {{if gt .Value 90}}
+        <h1>Value lebih dari 90</h1>
+    {{else if gt .Value 70}}
+        <h1>Value lebih dari 70</h1>
+    {{else if gt .Value 50}}
+        <h1>Value lebih dari 50</h1>
+    {{else}}
+        <h1>Value kurang dari 50</h1>
+    {{end}}
+
+    {{range $index, $hobby := .Hobbies}}
+        <h1>{{$index}} - {{$hobby}}</h1>
+    {{else}}
+        <h1>Hobbies tidak ditemukan</h1>
+    {{end}}
+
+    {{with .Address}}
+        <h1>{{.Street}}</h1>
+        <h1>{{.City}}</h1>
+        <h1>{{.Country}}</h1>
+    {{else}}
+        <h1>Address tidak ditemukan</h1>
+    {{end}}
+
+    {{/* komentar */}}
 </body>
 </html>
