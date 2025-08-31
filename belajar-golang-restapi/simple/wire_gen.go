@@ -6,6 +6,10 @@
 
 package simple
 
+import (
+	"github.com/google/wire"
+)
+
 // Injectors from injector.go:
 
 func InitializeService(isError bool) (*SimpleService, error) {
@@ -22,4 +26,81 @@ func InitializeDatabaseRepository() *DatabaseRepository {
 	databasePostgres := NewDatabasePostgres()
 	databaseRepository := NewDatabaseRepository(databaseMongoDB, databasePostgres)
 	return databaseRepository
+}
+
+func InitializeFooBarService() *FooBarService {
+	fooRepository := NewFooRepository()
+	fooService := NewFooService(fooRepository)
+	barRepository := NewBarRepository()
+	barService := NewBarService(barRepository)
+	fooBarService := NewFooBarService(fooService, barService)
+	return fooBarService
+}
+
+func InitializeHelloService() *HelloService {
+	sayHelloImpl := NewSayHelloImpl()
+	helloService := NewHelloService(sayHelloImpl)
+	return helloService
+}
+
+func InitializeAB() string {
+	string2 := A()
+	return string2
+}
+
+func InitializeFooBar() *FooBar {
+	foo := NewFoo()
+	bar := NewBar()
+	fooBar := &FooBar{
+		Foo: foo,
+		Bar: bar,
+	}
+	return fooBar
+}
+
+// Injectors from struct_provider.go:
+
+func InitializeFooBar2() *FooBar {
+	foo := NewFoo()
+	bar := NewBar()
+	fooBar := &FooBar{
+		Foo: foo,
+		Bar: bar,
+	}
+	return fooBar
+}
+
+// injector.go:
+
+var FooSet = wire.NewSet(
+	NewFooRepository,
+	NewFooService,
+)
+
+var BarSet = wire.NewSet(
+	NewBarRepository,
+	NewBarService,
+)
+
+var HelloSet = wire.NewSet(
+	NewSayHelloImpl, wire.Bind(new(SayHello), new(*SayHelloImpl)),
+)
+
+// struct_provider.go:
+
+type Foo struct{}
+
+type Bar struct{}
+
+func NewFoo() *Foo {
+	return &Foo{}
+}
+
+func NewBar() *Bar {
+	return &Bar{}
+}
+
+type FooBar struct {
+	*Foo
+	*Bar
 }
