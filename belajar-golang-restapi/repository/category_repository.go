@@ -20,7 +20,8 @@ type CategoryRepositoryImpl struct {
 	
 }
 
-func NewCategoryRepository() CategoryRepository {
+// func NewCategoryRepository() CategoryRepository {
+func NewCategoryRepository() *CategoryRepositoryImpl {
 	return &CategoryRepositoryImpl{}
 }
 

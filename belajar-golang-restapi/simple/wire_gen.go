@@ -7,8 +7,22 @@
 package simple
 
 import (
+	"fmt"
 	"github.com/google/wire"
+	"io"
+	"os"
 )
+
+// Injectors from cleanup.go:
+
+func InitializeConnection(name string) (*Connection, func()) {
+	file, cleanup := NewFile(name)
+	connection, cleanup2 := NewConnection(file)
+	return connection, func() {
+		cleanup2()
+		cleanup()
+	}
+}
 
 // Injectors from injector.go:
 
@@ -58,6 +72,14 @@ func InitializeFooBar() *FooBar {
 	return fooBar
 }
 
+// Injectors from struct_field_provider.go:
+
+func InitializeConfiguration() *Configuration {
+	application := NewApplication()
+	configuration := application.Configuration
+	return configuration
+}
+
 // Injectors from struct_provider.go:
 
 func InitializeFooBar2() *FooBar {
@@ -68,6 +90,62 @@ func InitializeFooBar2() *FooBar {
 		Bar: bar,
 	}
 	return fooBar
+}
+
+func InitializeFooBarUsingValue() *FooBar {
+	foo := _wireFooValue
+	bar := _wireBarValue
+	fooBar := &FooBar{
+		Foo: foo,
+		Bar: bar,
+	}
+	return fooBar
+}
+
+var (
+	_wireFooValue = fooValue
+	_wireBarValue = barValue
+)
+
+func InitializeReader() io.Reader {
+	reader := _wireFileValue
+	return reader
+}
+
+var (
+	_wireFileValue = os.Stdin
+)
+
+// cleanup.go:
+
+type File struct {
+	Name string
+}
+
+func (f *File) Close() {
+	fmt.Println("Close file", f.Name)
+}
+
+func NewFile(name string) (*File, func()) {
+	file := &File{Name: name}
+	return file, func() {
+		file.Close()
+	}
+}
+
+type Connection struct {
+	File *File
+}
+
+func (c *Connection) Close() {
+	fmt.Println("Close connection", c.File.Name)
+}
+
+func NewConnection(file *File) (*Connection, func()) {
+	connection := &Connection{File: file}
+	return connection, func() {
+		connection.Close()
+	}
 }
 
 // injector.go:
@@ -85,6 +163,24 @@ var BarSet = wire.NewSet(
 var HelloSet = wire.NewSet(
 	NewSayHelloImpl, wire.Bind(new(SayHello), new(*SayHelloImpl)),
 )
+
+// struct_field_provider.go:
+
+type Configuration struct {
+	Name string
+}
+
+type Application struct {
+	*Configuration
+}
+
+func NewApplication() *Application {
+	return &Application{
+		Configuration: &Configuration{
+			Name: "Local",
+		},
+	}
+}
 
 // struct_provider.go:
 
@@ -104,3 +200,7 @@ type FooBar struct {
 	*Foo
 	*Bar
 }
+
+var fooValue = &Foo{}
+
+var barValue = &Bar{}
