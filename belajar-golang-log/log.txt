@@ -1,0 +1,20 @@
+time="2025-09-05T14:34:18+08:00" level=info msg="Hello World"
+time="2025-09-05T14:34:18+08:00" level=warning msg=Warn
+time="2025-09-05T14:34:18+08:00" level=error msg=Error
+time="2025-09-05T14:34:18+08:00" level=fatal msg=Fatal
+time="2025-09-05T14:35:02+08:00" level=info msg="Hello World"
+time="2025-09-05T14:35:03+08:00" level=warning msg=Warn
+time="2025-09-05T14:35:03+08:00" level=error msg=Error
+time="2025-09-05T14:35:03+08:00" level=fatal msg=Fatal
+time="2025-09-05T14:35:28+08:00" level=trace msg=Trace
+time="2025-09-05T14:35:28+08:00" level=debug msg=Debug
+time="2025-09-05T14:35:28+08:00" level=info msg="Hello World"
+time="2025-09-05T14:35:28+08:00" level=warning msg=Warn
+time="2025-09-05T14:35:28+08:00" level=error msg=Error
+time="2025-09-05T14:35:28+08:00" level=fatal msg=Fatal
+time="2025-09-05T14:35:46+08:00" level=trace msg="Trace level"
+time="2025-09-05T14:35:46+08:00" level=debug msg="Debug level"
+time="2025-09-05T14:35:46+08:00" level=info msg="Hello World"
+time="2025-09-05T14:35:46+08:00" level=warning msg="Warn level"
+time="2025-09-05T14:35:46+08:00" level=error msg="Error level"
+time="2025-09-05T14:35:46+08:00" level=fatal msg="Fatal level"
