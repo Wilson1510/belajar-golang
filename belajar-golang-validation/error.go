@@ -13,14 +13,17 @@ type User struct {
 
 func main() {
 	user := User{
-		ID: 1,
-		Name: "John Doe",
-		Email: "john.doe@example.com",
+		ID: 0,
+		Name: "",
+		Email: "john.doeexample.com",
 	}
 
 	validate := validator.New()
 	err := validate.Struct(user)
 	if err != nil {
-		fmt.Println(err)
+		validationErrors := err.(validator.ValidationErrors)
+		for _, validationError := range validationErrors {
+			fmt.Println(validationError.Field(), validationError.Tag(), validationError.Error())
+		}
 	}
 }
