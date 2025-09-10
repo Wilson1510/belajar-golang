@@ -267,3 +267,18 @@ func TestOrderLimitOffset(t *testing.T) {
 	assert.Equal(t, "4", users[1].ID)
 	assert.Equal(t, "3", users[2].ID)
 }
+
+type UserResponse struct {
+	ID string
+	FirstName string
+	MiddleName string
+	LastName string
+}
+
+func TestUseOtherStruct(t *testing.T) {
+	var users []UserResponse
+	err := db.Model(&User{}).Select("id", "first_name", "middle_name", "last_name").Find(&users).Error
+	assert.Nil(t, err)
+	assert.Equal(t, 16, len(users))
+	fmt.Println(users)
+}
