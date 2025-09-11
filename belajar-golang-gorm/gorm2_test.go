@@ -3,146 +3,11 @@ package belajar_golang_gorm
 import (
 	"fmt"
 	"testing"
-	"strconv"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm/clause"
+	"context"
 	"gorm.io/gorm"
 )
-
-func TestUpdate(t *testing.T) {
-	var user User
-	err := db.Take(&user, "id = ?", "1").Error
-	assert.Nil(t, err)
-
-	user.Name.FirstName = "John 1"
-	user.Name.MiddleName = "Doe 1"
-	user.Name.LastName = "Wilson 1"
-	err = db.Save(&user).Error
-	assert.Nil(t, err)
-}
-
-func TestUpdate2(t *testing.T) {
-	err := db.Where("id = ?", "1").Updates(User{
-		Name: Name{
-			FirstName: "Zacky",
-			LastName: "Prasetio",
-		},
-	}).Error
-	assert.Nil(t, err)
-
-	err = db.Model(&User{}).Where("id = ?", "1").Updates(map[string]interface{}{
-		"first_name": "Naufal",
-		"last_name": "",
-	}).Error
-	assert.Nil(t, err)
-
-	err = db.Model(&User{}).Where("id = ?", "1").Update("password", "7890").Error
-	assert.Nil(t, err)
-}
-
-func TestAutoIncrement(t *testing.T) {
-	for i := 0; i < 10; i++ {
-		userLogs := UserLogs{
-			UserID: "1",
-			Action: "login " + strconv.Itoa(i),
-		}
-		err := db.Create(&userLogs).Error
-		assert.Nil(t, err)
-		assert.NotEqual(t, 0, userLogs.ID)
-		fmt.Println("User Logs ID: ", userLogs.ID)
-	}
-}
-
-func TestCreateOrUpdate(t *testing.T) {
-	userLogs := UserLogs{
-		UserID: "1",
-		Action: "login",
-	}
-	err := db.Save(&userLogs).Error
-	assert.Nil(t, err)
-
-	userLogs.Action = "logout"
-	err = db.Save(&userLogs).Error
-	assert.Nil(t, err)
-}
-
-func TestConflict(t *testing.T) {
-	userLogs := User{
-		ID: "41",
-		Name: Name{
-			FirstName: "Larry",
-			MiddleName: "Parker",
-			LastName: "Bird",
-		},
-		Password: "123456",
-	}
-	err := db.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Create(&userLogs).Error
-	assert.Nil(t, err)
-}
-
-func TestDelete(t *testing.T) {
-	err := db.Delete(&User{}, "id = ?", "41").Error
-	assert.Nil(t, err)
-
-	var user User
-	err = db.Take(&user, "id = ?", "11").Error
-	assert.Nil(t, err)
-	err = db.Delete(&user).Error
-	assert.Nil(t, err)
-
-	err = db.Where("id = ?", "2").Delete(&User{}).Error
-	assert.Nil(t, err)
-}
-
-func TestSoftDelete(t *testing.T) {
-	todo := Todo{
-		UserID: "1",
-		Title: "Todo 1",
-		Description: "Description 1",
-	}
-	err := db.Create(&todo).Error
-	assert.Nil(t, err)
-
-	err = db.Delete(&todo).Error
-	assert.Nil(t, err)
-
-	var todos []Todo
-	err = db.Take(&todo, "id = ?", todo.ID).Error
-	assert.Nil(t, err)
-	assert.NotNil(t, todo.DeletedAt)
-	assert.Equal(t, 0, len(todos))
-}
-
-func TestUnscoped(t *testing.T) {
-	var todo Todo
-	err := db.Unscoped().First(&todo, "id = ?", 1).Error
-	assert.Nil(t, err)
-	fmt.Println(todo)
-
-	err = db.Unscoped().Delete(&todo).Error
-	assert.Nil(t, err)
-
-	var todos []Todo
-	err = db.Unscoped().Find(&todos).Error
-	assert.Nil(t, err)
-	fmt.Println(todos)
-}
-
-func TestLock(t *testing.T) {
-	err := db.Transaction(func(tx *gorm.DB) error {
-		var user User
-		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Take(&user, "id = ?", "1").Error
-		assert.Nil(t, err)
-		
-		user.Name.FirstName = "kurniawan"
-		err = tx.Save(&user).Error
-		assert.Nil(t, err)
-		return nil
-	})
-	assert.Nil(t, err)
-}
 
 func TestCreateWallet(t *testing.T) {
 	wallet := Wallet{
@@ -377,4 +242,136 @@ func TestAssociationClear(t *testing.T) {
 
 	err = db.Model(&product).Association("LikedByUsers").Clear()
 	assert.Nil(t, err)
+}
+
+func TestPreloadCondition(t *testing.T) {
+	var user User
+	err := db.Preload("Wallet", "balance > ?", 100000).Take(&user, "id = ?", "3").Error
+	assert.Nil(t, err)
+	fmt.Println(user)
+}
+
+func TestNestedPreload(t *testing.T) {
+	var wallet Wallet
+	err := db.Preload("User.Addresses").Take(&wallet, "id = ?", "2").Error
+	assert.Nil(t, err)
+
+	fmt.Println(wallet)
+	fmt.Println(wallet.User.Addresses)
+}
+
+func TestPreloadAll(t *testing.T) {
+	var user User
+	err := db.Preload(clause.Associations).Take(&user, "id = ?", "3").Error
+	assert.Nil(t, err)
+
+	fmt.Println(user)
+	fmt.Println(user.Addresses)
+	fmt.Println(user.Wallet)
+	fmt.Println(user.LikeProducts)
+}
+
+func TestJoinQuery(t *testing.T) {
+	var users []User
+	err := db.Joins("join wallets on wallets.user_id = users.id AND wallets.balance > ?", 100000).Find(&users).Error
+	assert.Nil(t, err)
+
+	for _, user := range users {
+		fmt.Println(user.Name.FirstName)
+		fmt.Println(user.ID)
+	}
+
+	users = []User{}
+	err = db.Joins("Wallet").Where("Wallet.balance > ?", 100000).Find(&users).Error
+	assert.Nil(t, err)
+
+	fmt.Println(len(users))
+}
+
+func TestCount(t *testing.T) {
+	var count int64
+	err := db.Model(&User{}).Joins("Wallet").Where("Wallet.balance > ?", 100000).Count(&count).Error
+	assert.Nil(t, err)
+	assert.Equal(t, int64(2), count)
+}
+
+type Result struct {
+	SumBalance int64
+	AvgBalance float64
+	MaxBalance int64
+	MinBalance int64
+}
+
+func TestAggregate(t *testing.T) {
+	var result Result
+	err := db.Model(&Wallet{}).Select(
+		"sum(balance) as sum_balance, avg(balance) as avg_balance, max(balance) as max_balance, min(balance) as min_balance",
+	).Take(&result).Error
+	assert.Nil(t, err)
+	fmt.Println(result.SumBalance)
+	fmt.Println(result.AvgBalance)
+	fmt.Println(result.MaxBalance)
+	fmt.Println(result.MinBalance)
+}
+
+func TestGroupByHaving(t *testing.T) {
+	var results []Result
+	err := db.Model(&Wallet{}).Select(
+		"sum(balance) as sum_balance, avg(balance) as avg_balance, max(balance) as max_balance, min(balance) as min_balance",
+	).Joins("User").Group("user_id").Having("sum_balance > ?", 100000).Find(&results).Error
+	assert.Nil(t, err)
+	for _, result := range results {
+		fmt.Println(result.SumBalance)
+		fmt.Println(result.AvgBalance)
+		fmt.Println(result.MaxBalance)
+		fmt.Println(result.MinBalance)
+		fmt.Println()
+	}
+}
+
+func TestContext(t *testing.T) {
+	var users []User
+	ctx := context.Background()
+	err := db.WithContext(ctx).Find(&users).Error
+	assert.Nil(t, err)
+	fmt.Println(len(users))
+}
+
+func BrokeWallet(db *gorm.DB) *gorm.DB {
+	return db.Where("balance = ?", 0)
+}
+
+func SultanWallet(db *gorm.DB) *gorm.DB {
+	return db.Where("balance > ?", 100000)
+}
+
+func TestScopes(t *testing.T) {
+	var wallets []Wallet
+	err := db.Scopes(BrokeWallet).Find(&wallets).Error
+	assert.Nil(t, err)
+	fmt.Println(len(wallets))
+
+	wallets = []Wallet{}
+	err = db.Scopes(SultanWallet).Find(&wallets).Error
+	assert.Nil(t, err)
+	fmt.Println(len(wallets))
+}
+
+func TestMigrating(t *testing.T) {
+	err := db.Migrator().AutoMigrate(&GuestBook{})
+	assert.Nil(t, err)
+}
+
+func TestHook(t *testing.T) {
+	user := User{
+		Name: Name{
+			FirstName: "John",
+			MiddleName: "Doe",
+			LastName: "Wilson",
+		},
+	}
+	err := db.Create(&user).Error
+	assert.Nil(t, err)
+	assert.NotEqual(t, "", user.ID)
+	fmt.Println(user.ID)
 }

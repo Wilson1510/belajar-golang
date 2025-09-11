@@ -1,6 +1,9 @@
 package belajar_golang_gorm
 
-import "time"
+import (
+	"time"
+	"gorm.io/gorm"
+)
 
 type Name struct {
 	FirstName string
@@ -22,6 +25,13 @@ type User struct {
 
 func (user *User) TableName() string {
 	return "users"
+}
+
+func (user *User) BeforeCreate(db *gorm.DB) error {
+	if user.ID == "" {
+		user.ID = "user-" + time.Now().Format("20060102150405")
+	}
+	return nil
 }
 
 type UserLogs struct {
