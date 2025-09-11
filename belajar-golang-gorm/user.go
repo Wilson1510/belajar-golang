@@ -16,6 +16,8 @@ type User struct {
 	UpdatedAt time.Time `gorm:"column:updated_at;autoCreateTime;autoUpdateTime"` // autoUpdateTime adalah default value untuk updated_at
 	Information string `gorm:"-"`
 	Wallet Wallet `gorm:"foreignKey:user_id;references:id"`
+	Addresses []Address `gorm:"foreignKey:user_id;references:id"`
+	LikeProducts []Product `gorm:"many2many:user_like_product;foreignKey:id;joinForeignKey:user_id;references:id;joinReferences:product_id"`
 }
 
 func (user *User) TableName() string {
